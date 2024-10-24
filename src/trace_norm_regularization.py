@@ -42,7 +42,7 @@ def singular_value_thresholding(A, λ):
     A_thresh : array-like, shape (d, T)
         The thresholded matrix.
     """
-    u, s, vh = np.linalg.svd(A)
+    u, s, vh = np.linalg.svd(A, full_matrices=False)
     s = np.maximum(s - λ, 0)
     return u @ np.diag(s) @ vh
 
@@ -114,3 +114,15 @@ def optimize_under_trace_norm_regularization(A0, X, Y, λ=0.1, n_iter=100):
         W_k = W_k_next
     
     return W_k
+
+
+
+X = np.load('../data/X.npy')
+Y = np.load('../data/Y.npy')
+A0 = np.random.rand(X.shape[2], X.shape[0])
+λ = 0.1
+n_iter = 100
+
+A = optimize_under_trace_norm_regularization(A0, X, Y, λ, n_iter)
+
+print(A)
