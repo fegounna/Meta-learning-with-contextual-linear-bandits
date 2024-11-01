@@ -14,69 +14,73 @@ with open("../data/Y_test.pkl", "rb") as f:
 
 B = np.load("../data/B_ml.npy")
 
-# User t
-t = 4
-
-X_test_array = np.array(X_test[t])
-Y_test_array = np.array(Y_test[t])
-
-n, d = X_test_array.shape
-
+total_iterations = 20
 
 # Algorithm : Meta-Represented Greedy Policy
-arms = set(range(n))
-arm = np.random.randint(0, n)
-arms.remove(arm)
+regrets = np.zeros(total_iterations)
 
-X_i = np.array([X_test_array[arm]])
-Y_i = np.array([Y_test_array[arm]])
+for t in range(5):
+    X_test_array = np.array(X_test[t])
+    Y_test_array = np.array(Y_test[t])
 
-for i in range(1, min(n // 2, 30)):
-    X_iTX_i = X_i.T @ X_i
-    BTX_iTX_iB = B.T @ X_iTX_i @ B
-    BTX_iTY_i = B.T @ X_i.T @ Y_i
+    n, d = X_test_array.shape
 
-    reg = 1e-6 * np.eye(BTX_iTX_iB.shape[0])
-    alpha_i = np.linalg.inv(BTX_iTX_iB + reg) @ BTX_iTY_i
-
-    arm = max(arms, key=lambda a: np.dot(B @ alpha_i, X_test_array[a]))
-
-    X_i = np.vstack([X_i, X_test_array[arm]])
-    Y_i = np.append(Y_i, Y_test_array[arm])
-
+    arms = set(range(n))
+    arm = np.random.randint(0, n)
     arms.remove(arm)
+
+    X_i = np.array([X_test_array[arm]])
+    Y_i = np.array([Y_test_array[arm]])
+
+    best_reward = np.max(Y_test_array)
+    regrets[0] += best_reward - Y_test_array[arm]
+
+    for i in range(1, total_iterations):
+        X_iTX_i = X_i.T @ X_i
+        BTX_iTX_iB = B.T @ X_iTX_i @ B
+        BTX_iTY_i = B.T @ X_i.T @ Y_i
+
+        reg = 1e-6 * np.eye(BTX_iTX_iB.shape[0])
+        alpha_i = np.linalg.inv(BTX_iTX_iB + reg) @ BTX_iTY_i
+
+        arm = max(arms, key=lambda a: np.dot(B @ alpha_i, X_test_array[a]))
+        best_reward = np.max([Y_test_array[a] for a in arms])
+
+        X_i = np.vstack([X_i, X_test_array[arm]])
+        Y_i = np.append(Y_i, Y_test_array[arm])
+
+        regrets[i] += best_reward - Y_test_array[arm]
+        arms.remove(arm)
 
 
 # Algorithm : Random Selection of the arms
+regrets_random = np.zeros(total_iterations)
 
-arms = set(range(n))
-arm = np.random.randint(0, n)
-arms.remove(arm)
+for t in range(5):
+    X_test_array = np.array(X_test[t])
+    Y_test_array = np.array(Y_test[t])
 
-Y_i_random = np.array([Y_test_array[arm]])
+    n, d = X_test_array.shape
+    arms = set(range(n))
 
-for i in range(1, min(n // 2, 30)):
-    arm = np.random.choice(list(arms))
-    arms.remove(arm)
-    Y_i_random = np.append(Y_i_random, Y_test_array[arm])
+    for i in range(total_iterations):
+        arm = np.random.choice(list(arms))
+        best_reward = np.max([Y_test_array[a] for a in arms])
+        arms.remove(arm)
+        regrets_random[i] += best_reward - Y_test_array[arm]
 
 
-fig, axs = plt.subplots(2, 1, figsize=(10, 12))
+cumulative_regrets = np.cumsum(regrets)
+cumulative_regrets_random = np.cumsum(regrets_random)
 
-axs[0].plot(Y_i, marker="o", linestyle="", color="b")
-axs[0].set_title(f"Reward of Y_{t} with the meta-represented greedy policy")
-axs[0].set_xlabel("Iteration")
-axs[0].set_ylabel("Rating")
-axs[0].set_ylim(0.9, 5.1)
-axs[0].grid(True)
 
-axs[1].plot(Y_i_random, marker="o", linestyle="", color="b")
-axs[1].set_title(f"Reward of Y_{t} with the random selection of the arms")
-axs[1].set_xlabel("Iteration")
-axs[1].set_ylabel("Rating")
-axs[1].set_ylim(0.9, 5.1)
-axs[1].grid(True)
-
-plt.savefig(f"../results/user{t}")
-plt.tight_layout()
+plt.figure(figsize=(12, 6))
+plt.plot(cumulative_regrets / total_iterations, label="Meta-represented greedy policy")
+plt.plot(cumulative_regrets_random / total_iterations, label="Random selection")
+plt.xlabel("Iteration")
+plt.ylabel("Average Cumulative Regret")
+plt.title("Comparison of the Meta-represented greedy policy with random selection")
+plt.legend()
+plt.grid(True)
+plt.savefig("../results/Average Cumulative Regret of 5 test users.png")
 plt.show()
