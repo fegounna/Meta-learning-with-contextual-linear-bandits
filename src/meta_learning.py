@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-with open("../data/X_test.pkl", "rb") as f:
+with open("../data/X_test_80test.pkl", "rb") as f:
     X_test = pickle.load(f)
 
-with open("../data/Y_test.pkl", "rb") as f:
+with open("../data/Y_test_80test.pkl", "rb") as f:
     Y_test = pickle.load(f)
 
-B_trace = np.load("../data/B_ml.npy")
-B_mom = np.load("../data/B_ml_mom.npy")
+B_trace = np.load("../data/B_ml_80test.npy")
+B_mom = np.load("../data/B_ml_mom_80test.npy")
 
 total_iterations = 20
 
@@ -21,7 +21,7 @@ total_iterations = 20
 def calculate_regret(X_test, Y_test, B):
     regrets = np.zeros(total_iterations)
 
-    for t in range(5):
+    for t in range(len(X_test)):
         X_test_array = np.array(X_test[t])
         Y_test_array = np.array(Y_test[t])
 
@@ -65,7 +65,7 @@ regrets_mom = calculate_regret(X_test, Y_test, B_mom)
 # Algorithm : Random Selection of the arms
 regrets_random = np.zeros(total_iterations)
 
-for t in range(5):
+for t in range(len(X_test)):
     X_test_array = np.array(X_test[t])
     Y_test_array = np.array(Y_test[t])
 
@@ -83,18 +83,21 @@ cumulative_regrets_trace = np.cumsum(regrets_trace)
 cumulative_regrets_random = np.cumsum(regrets_random)
 cumulative_regrets_mom = np.cumsum(regrets_mom)
 
-
 plt.figure(figsize=(12, 6))
 plt.plot(
-    cumulative_regrets_trace / total_iterations,
+    cumulative_regrets_trace / len(X_test),
     label="Trace norm regularization Method",
 )
-plt.plot(cumulative_regrets_mom / total_iterations, label="Method of Moments")
-plt.plot(cumulative_regrets_random / total_iterations, label="Random selection")
+plt.plot(cumulative_regrets_mom / len(X_test), label="Method of Moments")
+plt.plot(cumulative_regrets_random / len(X_test), label="Random selection")
 plt.xlabel("Iteration")
 plt.ylabel("Average Cumulative Regret")
-plt.title("Comparison of the Meta-represented greedy policies with random selection")
+plt.title(
+    "Comparison of the Meta-represented greedy policies with random selection with 80 users having at least 30 rated movies"
+)
 plt.legend()
 plt.grid(True)
-plt.savefig("../results/Average Cumulative Regret of 5 test users.png")
+plt.savefig(
+    "../results/Average Cumulative Regret of 5 test users with 80 users having at least 30 rated movies.png"
+)
 plt.show()
