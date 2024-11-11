@@ -167,8 +167,8 @@ def extract_left_singular_vectors(A, threshold=0.001):
     return B
 
 
-X = np.load("../data/X_ml_80test.npy")
-Y = np.load("../data/Y_ml_80test.npy")
+X = np.load("./data/X_ml_80test.npy")
+Y = np.load("./data/Y_ml_80test.npy")
 A0 = np.random.rand(X.shape[2], X.shape[0])
 λ = 0.005
 n_iter = 100
@@ -203,4 +203,4 @@ A = optimize_under_trace_norm_regularization(A0, X, Y, λ, n_iter)
 
 B = extract_left_singular_vectors(A, threshold=0.001)
 
-np.save("../data/B_ml_80test.npy", B)
+np.save("./data/B_ml_80test.npy", B)

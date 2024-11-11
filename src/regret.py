@@ -46,7 +46,7 @@ def calculate_average_regret(X_test, Y_test, B, total_iterations):
             BTX_iTY_i = B.T @ X_i.T @ Y_i
 
             reg = 1e-6 * np.eye(BTX_iTX_iB.shape[0])
-            alpha_i = np.linalg.inv(BTX_iTX_iB + reg) @ BTX_iTY_i
+            alpha_i = np.linalg.inv(BTX_iTX_iB.astype(float) + reg) @ BTX_iTY_i
 
             arm = max(arms, key=lambda a: np.dot(B @ alpha_i, X_test_array[a]))
             best_reward = np.max([Y_test_array[a] for a in arms])

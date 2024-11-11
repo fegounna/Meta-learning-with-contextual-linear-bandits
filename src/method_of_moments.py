@@ -38,12 +38,12 @@ def estimate_B_using_mom(X, Y, r):
     return B
 
 
-X = np.load("../data/X_ml_80test.npy")
-Y = np.load("../data/Y_ml_80test.npy")
+X = np.load("./data/X_ml_80test.npy")
+Y = np.load("./data/Y_ml_80test.npy")
 
 
 B = estimate_B_using_mom(X, Y, 2)
-np.save("../data/B_ml_mom_80test.npy", B)
+np.save("./data/B_ml_mom_80test.npy", B)
 
 """
 T = X.shape[0]

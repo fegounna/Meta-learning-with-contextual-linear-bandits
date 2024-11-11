@@ -7,22 +7,25 @@ from regret import calculate_average_regret
 
 np.random.seed(42)
 
-with open("../data/X_test_80test.pkl", "rb") as f:
+with open("./data/X_test_synthetique.pkl", "rb") as f:
     X_test = pickle.load(f)
 
-with open("../data/Y_test_80test.pkl", "rb") as f:
+with open("./data/Y_test_synthetique.pkl", "rb") as f:
     Y_test = pickle.load(f)
 
-B_trace = np.load("../data/B_ml_80test.npy")
-B_mom = np.load("../data/B_ml_mom_80test.npy")
+B_trace = np.load("./data/B_trace_norm_synthetique.npy")
+B_mom = np.load("./data/B_mom_synthetique.npy")
+B_oracle = np.load("./data/B_oracle.npy")
 
-total_iterations = 30
+total_iterations = 50
 
 # Algorithm : Meta-Represented Greedy Policy
+cumulative_regrets_oracle = np.cumsum(
+    calculate_average_regret(X_test, Y_test, B_oracle, total_iterations)
+)
 cumulative_regrets_trace = np.cumsum(
     calculate_average_regret(X_test, Y_test, B_trace, total_iterations)
 )
-
 # Algorithm : Method of Moments
 cumulative_regrets_mom = np.cumsum(
     calculate_average_regret(X_test, Y_test, B_mom, total_iterations)
@@ -53,6 +56,7 @@ plt.plot(
 )
 plt.plot(cumulative_regrets_mom, label="Method of Moments")
 plt.plot(cumulative_regrets_random, label="Random selection")
+plt.plot(cumulative_regrets_oracle, label="Oracle")
 plt.xlabel("Iteration")
 plt.ylabel("Average Cumulative Regret")
 plt.title(
@@ -61,6 +65,6 @@ plt.title(
 plt.legend()
 plt.grid(True)
 plt.savefig(
-    "../results/Average Cumulative Regret of 5 test users with 80 users having at least 30 rated movies.png"
+    "./results/Average Cumulative Regret of 5 test users with 80 users having at least 30 rated movies.png"
 )
 plt.show()
