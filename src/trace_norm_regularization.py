@@ -141,7 +141,7 @@ def optimize_under_trace_norm_regularization(A0, X, Y, λ=0.1, n_iter=100):
     return W_k
 
 
-def extract_left_singular_vectors(A, threshold=0.01):
+def extract_left_singular_vectors(A, threshold=0.001):
     """Extract the left singular vectors of a matrix using Singular Value Decomposition (SVD),
     retaining only those corresponding to singular values greater than a specified threshold.
 
@@ -167,14 +167,40 @@ def extract_left_singular_vectors(A, threshold=0.01):
     return B
 
 
-X = np.load("../data/X_ml.npy")
-Y = np.load("../data/Y_ml.npy")
+X = np.load("../data/X_ml_80test.npy")
+Y = np.load("../data/Y_ml_80test.npy")
 A0 = np.random.rand(X.shape[2], X.shape[0])
 λ = 0.005
 n_iter = 100
 
+"""
+T = X.shape[0]
+split_point = int(T * 0.8)
+X_train = X[:split_point]
+X_val = X[split_point:]
+Y_train = Y[:split_point]
+Y_val = Y[split_point:]
+
+λ_values = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+
+best_regret = float('inf')
+best_r = None
+best_B = None
+
+for λ in λ_values:
+    A = optimize_under_trace_norm_regularization(A0, X_train, Y_train, λ, n_iter)
+    B = extract_left_singular_vectors(A, threshold=0.01)
+
+    current_regret = calculate_regret(X_val, Y_val, B,20)[-1]
+    print(f"λ={λ}: Regret={current_regret}")
+    
+    if current_regret < best_regret:
+        best_regret = current_regret
+        best_λ = λ
+        best_B = B"""
+
 A = optimize_under_trace_norm_regularization(A0, X, Y, λ, n_iter)
 
-B = extract_left_singular_vectors(A, threshold=0.01)
+B = extract_left_singular_vectors(A, threshold=0.001)
 
-np.save("../data/B_ml.npy", B)
+np.save("../data/B_ml_80test.npy", B)
