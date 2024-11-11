@@ -128,7 +128,6 @@ def optimize_under_trace_norm_regularization(A0, X, Y, λ=0.1, n_iter=100):
     Z_k = A0
     W_k = A0
     L = calculate_lipschitz_constant(X)
-    print(L)
     for _ in range(n_iter):
         W_k_next = update_rule(Z_k, X, Y, L, λ)
 
@@ -167,40 +166,32 @@ def extract_left_singular_vectors(A, threshold=0.001):
     return B
 
 
-X = np.load("./data/X_ml_80test.npy")
-Y = np.load("./data/Y_ml_80test.npy")
-A0 = np.random.rand(X.shape[2], X.shape[0])
-λ = 0.005
-n_iter = 100
+def estimate_B_using_trace_norm_regularization(X, Y, λ, A0=None, n_iter=100):
+    """Estimate the matrix B using trace norm regularization.
 
-"""
-T = X.shape[0]
-split_point = int(T * 0.8)
-X_train = X[:split_point]
-X_val = X[split_point:]
-Y_train = Y[:split_point]
-Y_val = Y[split_point:]
+    Parameters
+    ----------
+    X : array-like, shape (T, n, d)
+        The context data.
+    Y : array-like, shape (T, n)
+        The reward data.
+    λ : float
+        The regularization parameter.
+    A0 : array-like, shape (d, T), optional
+        The initial matrix.
+    n_iter : int, optional
+        The number of optimization iterations.
 
-λ_values = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+    Returns
+    -------
+    B : array-like, shape (d, r)
+        The estimated matrix B.
+    """
+    if A0 is None:
+        A0 = np.random.rand(X.shape[2], X.shape[0])
 
-best_regret = float('inf')
-best_r = None
-best_B = None
+    A = optimize_under_trace_norm_regularization(A0, X, Y, λ, n_iter)
 
-for λ in λ_values:
-    A = optimize_under_trace_norm_regularization(A0, X_train, Y_train, λ, n_iter)
-    B = extract_left_singular_vectors(A, threshold=0.01)
+    B = extract_left_singular_vectors(A, threshold=0.001)
 
-    current_regret = calculate_regret(X_val, Y_val, B,20)[-1]
-    print(f"λ={λ}: Regret={current_regret}")
-    
-    if current_regret < best_regret:
-        best_regret = current_regret
-        best_λ = λ
-        best_B = B"""
-
-A = optimize_under_trace_norm_regularization(A0, X, Y, λ, n_iter)
-
-B = extract_left_singular_vectors(A, threshold=0.001)
-
-np.save("./data/B_ml_80test.npy", B)
+    return B
